@@ -1,0 +1,54 @@
+name: Terraform Plan Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform-plan.yml'
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-plan:
+    name: Terraform Format, Validate & Plan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive terraform/
+
+      - name: Terraform Init (${{ matrix.environment }})
+        run: |
+          cd terraform/environments/${{ matrix.environment }}
+          terraform init
+
+      - name: Terraform Validate (${{ matrix.environment }})
+        run: |
+          cd terraform/environments/${{ matrix.environment }}
+          terraform validate
+
+      - name: Terraform Plan (${{ matrix.environment }})
+        run: |
+          cd terraform/environments/${{ matrix.environment }}
+          terraform plan -no-color -out=tfplan
