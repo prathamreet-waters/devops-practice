@@ -1,0 +1,120 @@
+direction: right
+
+header: "TERRAFORM — MODULES / ENVIRONMENTS / REMOTE STATE"
+
+# ============================================================
+# SOURCE
+# ============================================================
+
+github: "GitHub" {
+  repo: "Infrastructure Repository" {
+    environments: "environments/"
+    modules: "modules/"
+    backend: "backend/"
+  }
+}
+
+# ============================================================
+# ENVIRONMENTS
+# ============================================================
+
+env: "ENVIRONMENTS" {
+  dev: "DEV"
+  staging: "STAGING"
+  prod: "PROD"
+}
+
+github.repo.environments -> env.dev
+github.repo.environments -> env.staging
+github.repo.environments -> env.prod
+
+# ============================================================
+# MODULES
+# ============================================================
+
+modules: "REUSABLE MODULES" {
+  network: "VPC / Networking"
+  iam: "IAM"
+  ecr: "ECR"
+  ecs: "ECS Fargate"
+  alb: "ALB"
+  rds: "RDS"
+  secrets: "Secrets Manager"
+  monitoring: "CloudWatch"
+}
+
+github.repo.modules -> modules
+
+env.dev -> modules
+env.staging -> modules
+env.prod -> modules
+
+# ============================================================
+# TERRAFORM PIPELINE
+# ============================================================
+
+pipeline: "TERRAFORM CI/CD" {
+  fmt: "terraform fmt"
+  validate: "terraform validate"
+  scan: "Checkov / tfsec"
+  plan: "terraform plan"
+  approval: "Approval"
+  apply: "terraform apply"
+
+  fmt -> validate
+  validate -> scan
+  scan -> plan
+  plan -> approval
+  approval -> apply
+}
+
+github.repo -> pipeline.fmt
+
+# ============================================================
+# AWS
+# ============================================================
+
+aws: "AWS" {
+  resources: "Infrastructure Resources" {
+    vpc: "VPC"
+    iam: "IAM"
+    ecr: "ECR"
+    ecs: "ECS"
+    alb: "ALB"
+    rds: "RDS"
+    secrets: "Secrets"
+    monitoring: "CloudWatch"
+  }
+
+  state: "REMOTE STATE" {
+    s3: "S3 State Bucket"
+    lock: "State Locking"
+    s3 -> lock
+  }
+}
+
+pipeline.apply -> aws.resources
+pipeline.apply -> aws.state: "State"
+
+# ============================================================
+# MODULE → RESOURCE MAPPING
+# ============================================================
+
+modules.network -> aws.resources.vpc
+modules.iam -> aws.resources.iam
+modules.ecr -> aws.resources.ecr
+modules.ecs -> aws.resources.ecs
+modules.alb -> aws.resources.alb
+modules.rds -> aws.resources.rds
+modules.secrets -> aws.resources.secrets
+modules.monitoring -> aws.resources.monitoring
+
+# ============================================================
+# REMOTE STATE FLOW
+# ============================================================
+
+state_comment: "Terraform state is stored remotely\nnot on developer machines" {
+  shape: note
+}
+
+aws.state.s3 -> state_comment
