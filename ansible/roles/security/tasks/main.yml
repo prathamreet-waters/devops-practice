@@ -38,9 +38,3 @@
     regexp: '^#?PasswordAuthentication'
     line: 'PasswordAuthentication no'
   notify: Restart SSH
-
-handlers:
-  - name: Restart SSH
-    service:
-      name: ssh
-      state: restarted

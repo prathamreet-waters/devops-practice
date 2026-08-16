@@ -1,5 +1,5 @@
 ---
 ufw_allowed_ports:
-  - 22
+  - "22"
 fail2ban_bantime: 3600
 fail2ban_maxretry: 5
