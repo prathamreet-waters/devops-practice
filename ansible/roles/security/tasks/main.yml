@@ -1,0 +1,46 @@
+---
+- name: Install security packages
+  apt:
+    name:
+      - ufw
+      - fail2ban
+      - auditd
+    state: present
+
+- name: Enable and configure UFW firewall
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Allow specified SSH and traffic ports
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ ufw_allowed_ports }}"
+
+- name: Ensure fail2ban service is running and enabled
+  systemd:
+    name: fail2ban
+    state: started
+    enabled: yes
+
+- name: Harden SSH configuration - Disable Root Login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify: Restart SSH
+
+- name: Harden SSH configuration - Disable Password Auth
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+  notify: Restart SSH
+
+handlers:
+  - name: Restart SSH
+    service:
+      name: ssh
+      state: restarted
