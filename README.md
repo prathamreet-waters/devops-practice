@@ -48,6 +48,10 @@ AWS
     └── EC2 + Ansible
 ```
 
+![Architecture](docs/architecture/architecture.png)
+![CI/CD](docs/architecture/cicd.png)
+![AWS Network](docs/architecture/aws-network.png)
+![Terraform](docs/architecture/terraform.png)
 
 ```sh
 aws-devops-platform/
@@ -124,4 +128,3 @@ aws-devops-platform/
 ├── README.md
 └── LICENSE
 ```
-
