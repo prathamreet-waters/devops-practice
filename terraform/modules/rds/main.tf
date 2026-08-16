@@ -34,6 +34,7 @@ resource "aws_db_instance" "postgres" {
   parameter_group_name   = aws_db_parameter_group.pg.name
   multi_az               = var.multi_az
   skip_final_snapshot    = var.environment == "prod" ? false : true
+  final_snapshot_identifier = var.environment == "prod" ? "${var.environment}-postgres-final-snapshot" : null
 
   tags = var.tags
 }
