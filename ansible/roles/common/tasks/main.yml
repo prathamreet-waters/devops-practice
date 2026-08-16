@@ -1,0 +1,16 @@
+---
+- name: Update apt cache and upgrade system packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+  when: ansible_os_family == 'Debian'
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"
+
+- name: Install common system packages
+  package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ common_packages }}"
