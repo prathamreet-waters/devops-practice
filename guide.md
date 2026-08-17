@@ -77,7 +77,7 @@ This ensures all changes go through CI before merging.
 
 ```bash
 aws configure
-# Enter your Access Key ID, Secret Access Key, Region (us-east-1), Output (json)
+# Enter your Access Key ID, Secret Access Key, Region (ap-south-2), Output (json)
 ```
 
 ### 3.2 Verify access
@@ -134,7 +134,7 @@ Run these commands once from your terminal:
 # Create the S3 bucket for state
 aws s3api create-bucket \
   --bucket devops-practice-tfstate-global \
-  --region us-east-1
+  --region ap-south-2
 
 # Enable versioning on the bucket
 aws s3api put-bucket-versioning \
@@ -168,7 +168,7 @@ aws dynamodb create-table \
   --attribute-definitions AttributeName=LockID,AttributeType=S \
   --key-schema AttributeName=LockID,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
-  --region us-east-1
+  --region ap-south-2
 ```
 
 Verify they exist:
@@ -256,7 +256,7 @@ docker stop $(docker ps -q --filter ancestor=devops-app:latest)
 ```bash
 # Get your AWS account ID and ECR URL from terraform output
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-AWS_REGION="us-east-1"
+AWS_REGION="ap-south-2"
 ECR_URL="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/dev-devops-app"
 
 # Login to ECR
@@ -274,7 +274,7 @@ aws ecs update-service \
   --cluster dev-cluster \
   --service dev-service \
   --force-new-deployment \
-  --region us-east-1
+  --region ap-south-2
 ```
 
 ---

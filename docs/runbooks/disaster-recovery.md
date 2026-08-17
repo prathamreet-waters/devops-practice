@@ -27,7 +27,7 @@ This document defines the Disaster Recovery (DR) procedures for the AWS DevOps P
    ```bash
    aws secretsmanager update-secret \
      --secret-id dev/app/config \
-     --secret-string '{"DB_HOST":"dev-postgres-restored.xxxx.us-east-1.rds.amazonaws.com"}'
+     --secret-string '{"DB_HOST":"dev-postgres-restored.xxxx.ap-south-2.rds.amazonaws.com"}'
    ```
 
 ## Scenario 2: Complete Regional Failover / Infrastructure Rebuilding
