@@ -1,0 +1,6 @@
+---
+- name: Bootstrap management servers
+  hosts: management_servers
+  become: yes
+  roles:
+    - common

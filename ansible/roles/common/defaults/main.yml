@@ -1,0 +1,11 @@
+---
+timezone: "UTC"
+common_packages:
+  - curl
+  - wget
+  - git
+  - htop
+  - unzip
+  - jq
+  - ca-certificates
+  - net-tools

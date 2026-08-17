@@ -1,0 +1,101 @@
+direction: right
+
+header: "CI/CD — GITHUB ACTIONS → ECR → ECS"
+
+# ============================================================
+# SOURCE
+# ============================================================
+
+source: "SOURCE" {
+  developer: "Developer" {
+    shape: person
+  }
+
+  github: "GitHub" {
+    feature: "Feature Branch"
+    pr: "Pull Request"
+    main: "main"
+
+    feature -> pr
+    pr -> main: "Merge"
+  }
+}
+
+source.developer -> source.github.feature: "git push"
+
+# ============================================================
+# CI
+# ============================================================
+
+ci: "CI PIPELINE" {
+  checkout: "Checkout Code"
+  test: "Unit Tests"
+  lint: "Lint"
+  sast: "SAST"
+  deps: "Dependency Scan"
+  docker: "Docker Build"
+  image: "Container Scan"
+
+  checkout -> test
+  test -> lint
+  lint -> sast
+  sast -> deps
+  deps -> docker
+  docker -> image
+}
+
+source.github.main -> ci.checkout
+
+# ============================================================
+# ECR
+# ============================================================
+
+ecr: "AMAZON ECR" {
+  repository: "Application Repository"
+  v1: "v1.0.0"
+  v2: "v1.1.0"
+  sha: "commit-sha"
+
+  repository -> v1
+  repository -> v2
+  repository -> sha
+}
+
+ci.image -> ecr.repository: "Push Image"
+
+# ============================================================
+# CD
+# ============================================================
+
+cd: "CD PIPELINE" {
+  taskdef: "Create / Update ECS Task Definition"
+  deploy: "Deploy to ECS"
+  health: "Health Check"
+  smoke: "Smoke Tests"
+  decision: "Deployment Result" {
+    success: "SUCCESS"
+    failure: "FAILURE → Rollback"
+  }
+
+  taskdef -> deploy
+  deploy -> health
+  health -> smoke
+  smoke -> decision
+}
+
+ecr.repository -> cd.taskdef: "Image URI"
+
+# ============================================================
+# ENVIRONMENTS
+# ============================================================
+
+environments: "ENVIRONMENTS" {
+  dev: "DEV"
+  staging: "STAGING"
+  prod: "PROD"
+
+  dev -> staging: "Promote"
+  staging -> prod: "Approval"
+}
+
+cd.decision.success -> environments.dev

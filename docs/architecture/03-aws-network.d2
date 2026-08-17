@@ -1,0 +1,81 @@
+direction: down
+
+header: "AWS NETWORK — VPC / SUBNETS / SECURITY / ALB / ECS / RDS"
+
+internet: "INTERNET" {
+  shape: cloud
+}
+
+vpc: "VPC — 10.0.0.0/16" {
+
+  igw: "Internet Gateway"
+
+  public: "PUBLIC SUBNETS" {
+    az_a: "Availability Zone A" {
+      alb_a: "ALB Node"
+      nat_a: "NAT Gateway"
+    }
+
+    az_b: "Availability Zone B" {
+      alb_b: "ALB Node"
+      nat_b: "NAT Gateway"
+    }
+  }
+
+  app: "PRIVATE APPLICATION SUBNETS" {
+    az_a: "Availability Zone A" {
+      ecs_a: "ECS Fargate Tasks"
+    }
+
+    az_b: "Availability Zone B" {
+      ecs_b: "ECS Fargate Tasks"
+    }
+  }
+
+  db: "PRIVATE DATABASE SUBNETS" {
+    az_a: "Availability Zone A" {
+      rds_a: "RDS"
+    }
+
+    az_b: "Availability Zone B" {
+      rds_b: "RDS"
+    }
+  }
+}
+
+internet -> vpc.igw
+vpc.igw -> vpc.public
+vpc.public.az_a.alb_a -> vpc.public.az_b.alb_b: "ALB"
+vpc.public -> vpc.app: "NAT / Private Egress"
+vpc.app -> vpc.db: "Private DB Traffic"
+
+# ============================================================
+# SECURITY GROUPS
+# ============================================================
+
+security: "SECURITY GROUPS" {
+  alb_sg: "ALB SG\n443 from Internet"
+  ecs_sg: "ECS SG\nApp Port from ALB"
+  rds_sg: "RDS SG\nDB Port from ECS"
+
+  alb_sg -> ecs_sg: "Allow"
+  ecs_sg -> rds_sg: "Allow"
+}
+
+vpc.public.az_a.alb_a -> security.alb_sg
+vpc.app.az_a.ecs_a -> security.ecs_sg
+vpc.db.az_a.rds_a -> security.rds_sg
+
+# ============================================================
+# TRAFFIC FLOW
+# ============================================================
+
+client: "Application User" {
+  shape: person
+}
+
+client -> vpc.public.az_a.alb_a: "HTTPS :443"
+vpc.public.az_a.alb_a -> vpc.app.az_a.ecs_a: "Forward"
+vpc.public.az_b.alb_b -> vpc.app.az_b.ecs_b: "Forward"
+vpc.app.az_a.ecs_a -> vpc.db.az_a.rds_a: "DB Connection"
+vpc.app.az_b.ecs_b -> vpc.db.az_b.rds_b: "DB Connection"

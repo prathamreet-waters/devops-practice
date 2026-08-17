@@ -1,0 +1,6 @@
+---
+- name: Apply security hardening to management servers
+  hosts: management_servers
+  become: yes
+  roles:
+    - security

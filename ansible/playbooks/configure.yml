@@ -1,0 +1,9 @@
+---
+- name: Configure management infrastructure
+  import_playbook: bootstrap.yml
+
+- name: Apply security hardening
+  import_playbook: hardening.yml
+
+- name: Install monitoring stack
+  import_playbook: monitoring.yml

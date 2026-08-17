@@ -1,0 +1,115 @@
+direction: right
+
+header: "PRODUCTION-GRADE AWS DEVOPS PLATFORM"
+
+# ============================================================
+# SOURCE
+# ============================================================
+
+developer: "Developer" {
+  shape: person
+}
+
+github: "GITHUB" {
+  app: "Application Code"
+  terraform: "Terraform"
+  ansible: "Ansible"
+}
+
+developer -> github.app: "Push / PR"
+developer -> github.terraform: "IaC changes"
+developer -> github.ansible: "Config changes"
+
+# ============================================================
+# CI/CD
+# ============================================================
+
+cicd: "GITHUB ACTIONS" {
+  ci: "CI" {
+    test: "Test"
+    security: "Security Scan"
+    build: "Docker Build"
+  }
+
+  ecr: "ECR" {
+    images: "Versioned Images"
+  }
+
+  cd: "CD" {
+    deploy: "Deploy ECS"
+    verify: "Smoke / Health Check"
+  }
+
+  ci.test -> ci.security
+  ci.security -> ci.build
+  ci.build -> ecr.images
+  ecr.images -> cd.deploy
+  cd.deploy -> cd.verify
+}
+
+github.app -> cicd.ci.test
+
+# ============================================================
+# INFRASTRUCTURE
+# ============================================================
+
+aws: "AWS CLOUD" {
+  security: "SECURITY" {
+    iam: "IAM"
+    secrets: "Secrets Manager"
+  }
+
+  vpc: "VPC" {
+    public: "Public Subnets\nALB / NAT"
+    private: "Private App Subnets\nECS"
+    data: "Private DB Subnets\nRDS"
+  }
+
+  compute: "ECS Fargate" {
+    service: "Application Service"
+    tasks: "Running Tasks"
+    service -> tasks
+  }
+
+  alb: "Application Load Balancer"
+  rds: "RDS Database"
+
+  observability: "OBSERVABILITY" {
+    logs: "CloudWatch Logs"
+    metrics: "CloudWatch Metrics"
+    alarms: "CloudWatch Alarms"
+    metrics -> alarms
+  }
+}
+
+terraform: "TERRAFORM" {
+  env: "DEV / STAGING / PROD"
+  modules: "Reusable AWS Modules"
+  backend: "Remote State\nS3 + Locking"
+}
+
+github.terraform -> terraform.env
+terraform.env -> terraform.modules
+terraform.modules -> aws.vpc
+terraform.modules -> aws.compute
+terraform.modules -> aws.alb
+terraform.modules -> aws.rds
+terraform.modules -> aws.security
+terraform.backend -> terraform.modules: "State"
+
+cicd.cd.deploy -> aws.compute: "New Task Definition"
+aws.alb -> aws.compute: "HTTPS"
+aws.compute -> aws.rds: "Private DB"
+aws.security.secrets -> aws.compute: "Runtime Secrets"
+aws.compute -> aws.observability.logs
+aws.compute -> aws.observability.metrics
+aws.alb -> aws.observability.metrics
+aws.rds -> aws.observability.metrics
+
+github.ansible -> ansible: "Configuration"
+
+ansible: "ANSIBLE" {
+  playbooks: "Playbooks"
+  host: "EC2 Utility Host"
+  playbooks -> host
+}
