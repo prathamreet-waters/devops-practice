@@ -90,6 +90,43 @@ jobs:
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           aws-region: ap-south-2
+        timeout-minutes: 2
+
+      - name: Test Manual Role Assumption
+        if: failure()
+        run: |
+          echo "=========================================="
+          echo "Manual OIDC Role Assumption Test"
+          echo "=========================================="
+          
+          # Get fresh OIDC token
+          OIDC_RESPONSE=$(curl -s "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN")
+          
+          OIDC_TOKEN=$(echo "$OIDC_RESPONSE" | jq -r '.token')
+          
+          echo "Testing role assumption with token..."
+          
+          # Try to assume role manually
+          ASSUME_RESPONSE=$(aws sts assume-role-with-web-identity \
+            --role-arn ${{ secrets.AWS_OIDC_ROLE_ARN }} \
+            --role-session-name github-actions-test \
+            --web-identity-token "$OIDC_TOKEN" \
+            --region ap-south-2 2>&1)
+          
+          echo "Response:"
+          echo "$ASSUME_RESPONSE" | jq . || echo "$ASSUME_RESPONSE"
+          
+          # If manual test succeeds, it's an action issue
+          if echo "$ASSUME_RESPONSE" | jq '.Credentials' &>/dev/null; then
+            echo ""
+            echo "✓ Manual role assumption SUCCEEDED"
+            echo "  Issue is with aws-actions/configure-aws-credentials@v4"
+          else
+            echo ""
+            echo "✗ Manual role assumption FAILED"
+            echo "  Issue is with trust policy or token claims"
+          fi
 
       - name: Verify AWS Credentials
         run: |
