@@ -7,7 +7,7 @@ resource "aws_db_subnet_group" "main" {
 
 resource "aws_db_parameter_group" "pg" {
   name   = "${var.environment}-pg-params"
-  family = "postgres15"
+  family = "postgres14"
 
   parameter {
     name  = "log_connections"
@@ -20,7 +20,7 @@ resource "aws_db_parameter_group" "pg" {
 resource "aws_db_instance" "postgres" {
   identifier             = "${var.environment}-postgres"
   engine                 = "postgres"
-  engine_version         = "15.4"
+  engine_version         = "14.20"
   instance_class         = var.db_instance_class
   allocated_storage      = var.allocated_storage
   max_allocated_storage  = 100
