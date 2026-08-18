@@ -56,26 +56,23 @@ jobs:
           OIDC_RESPONSE=$(curl -s "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN")
           
-          OIDC_TOKEN=$(echo "$OIDC_RESPONSE" | jq -r '.token // empty')
-          
-          if [ -z "$OIDC_TOKEN" ]; then
-            echo "❌ ERROR: Failed to get OIDC token"
+          # Check if we got a valid response (GitHub masks sensitive tokens with ***)
+          if echo "$OIDC_RESPONSE" | jq . &>/dev/null; then
+            if echo "$OIDC_RESPONSE" | jq '.token' &>/dev/null; then
+              echo "✓ OIDC token received successfully"
+              echo "  (Token is masked in logs for security: ***)"
+              echo "  Full response structure:"
+              echo "$OIDC_RESPONSE" | jq .
+            else
+              echo "❌ ERROR: No token field in response"
+              echo "Response: $OIDC_RESPONSE"
+              exit 1
+            fi
+          else
+            echo "❌ ERROR: Invalid JSON response"
             echo "Response: $OIDC_RESPONSE"
             exit 1
-          else
-            echo "✓ OIDC token received"
           fi
-          
-          echo ""
-          echo "=========================================="
-          echo "OIDC Token Claims"
-          echo "=========================================="
-          # Decode JWT token (payload is the 2nd part)
-          PAYLOAD=$(echo "$OIDC_TOKEN" | cut -d'.' -f2)
-          # Add padding if needed
-          PADDED_PAYLOAD="${PAYLOAD}=="
-          DECODED=$(echo "$PADDED_PAYLOAD" | base64 -d 2>/dev/null | jq . 2>/dev/null || echo "Failed to decode")
-          echo "$DECODED"
           
           echo ""
           echo "=========================================="
