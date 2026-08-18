@@ -58,10 +58,8 @@ jobs:
           
           echo ""
           echo "Requesting OIDC token..."
-          OIDC_RESPONSE=$(curl -s -X POST "$ACTIONS_ID_TOKEN_REQUEST_URL" \
-            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d '{"audience":"sts.amazonaws.com"}')
+          OIDC_RESPONSE=$(curl -s "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN")
           
           OIDC_TOKEN=$(echo "$OIDC_RESPONSE" | jq -r '.token // empty')
           
