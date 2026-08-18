@@ -33,7 +33,7 @@ module "security" {
 module "iam" {
   source           = "../../modules/iam"
   environment      = local.environment
-  create_oidc_role = true
+  create_oidc_role = false
   tags             = local.tags
 }
 
