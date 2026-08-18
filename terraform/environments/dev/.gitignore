@@ -1,2 +1,5 @@
-tfplan
-tfplan.json
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+plan.json
