@@ -22,6 +22,7 @@ COPY src/ /app/src/
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
+    FLASK_HOST=0.0.0.0 \
     APP_ENV=production
 
 USER appuser

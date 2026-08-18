@@ -73,5 +73,6 @@ def metrics():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8000"))
-    logger.info("Starting DevOps Practice Service on port %d", port)
-    app.run(host="0.0.0.0", port=port)
+    host = os.getenv("FLASK_HOST", "127.0.0.1")
+    logger.info("Starting DevOps Practice Service on %s:%d", host, port)
+    app.run(host=host, port=port)
