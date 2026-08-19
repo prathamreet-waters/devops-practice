@@ -67,7 +67,7 @@ def info():
         "port": int(os.getenv("PORT", "8000"))
     }), 200
 
-@app.route("/metrics", methods=["GET"])
+@app.route("/meapptrics", methods=["GET"])
 def metrics():
     return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
